@@ -10,7 +10,6 @@ data ProgramOptions = ProgramOptions
         attempts :: Int,
         csvSeparator :: String,
         ignoreFirstCol :: Bool,
-        ignoreLastCol :: Bool,
         ignoreFirstLine :: Bool,
         outPath :: String
     }
@@ -28,8 +27,6 @@ instance Options ProgramOptions where
             "A separator of the csv file"
         <*> simpleOption "ignoreFirstCol" False
             "The csv parser should ignore the first column."
-        <*> simpleOption "ignoreLastCol" False
-            "The csv parser should ignore the last column."
         <*> simpleOption "ignoreFirstLine" False
             "The csv parser should ignore the first line."
         <*> simpleOption "outPath" ""

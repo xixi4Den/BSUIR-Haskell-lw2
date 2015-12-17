@@ -11,5 +11,7 @@ import Bayes
 main :: IO()
 main = runCommand $ \opts _ -> do
     patterns <- parseCsv opts 
-    res <- splitPatterns (separation opts) patterns
-    showResult opts $ getClassificator $ groupByCluster $ fst res
+    resWithIndexes <- splitPatterns (separation opts) patterns
+    let indexes = map (snd) $ fst resWithIndexes
+    let res = map (fst) $ fst resWithIndexes
+    showResult opts indexes $ getClassificator $ groupByCluster res

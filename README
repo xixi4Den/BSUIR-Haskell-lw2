@@ -1,0 +1,27 @@
+Build:
+cabal install
+cabal run
+
+
+Application Options:
+	--inputPath :: text
+		A path to input file.
+		default: ""
+	--separation :: float64
+		A percent for separating input data into training and testing parts.
+		default: 0.8
+	--attempts :: int
+		A number of attempts for finding the best classificator.
+		default: 1
+	--csvSeparator :: text
+		A separator of the csv file
+		default: ","
+	--ignoreFirstCol :: bool
+		The csv parser should ignore the first column.
+		default: false
+	--ignoreFirstLine :: bool
+		The csv parser should ignore the first line.
+		default: false
+	--outPath :: text
+		A path to output file. Writes to the console if is empty.
+		default: ""

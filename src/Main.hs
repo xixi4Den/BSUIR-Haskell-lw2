@@ -2,16 +2,16 @@ module Main
 where
 
 import Options
+import Control.Monad.Reader
 
-import Args
 import CsvParser
 import RandomUtil
 import Bayes
 
 main :: IO()
 main = runCommand $ \opts _ -> do
-    patterns <- parseCsv opts 
-    resWithIndexes <- splitPatterns (separation opts) patterns
+    patterns <- runReader parseCsv opts 
+    resWithIndexes <- runReaderT (splitPatterns patterns) opts
     let indexes = map (snd) $ fst resWithIndexes
     let res = map (fst) $ fst resWithIndexes
-    showResult opts indexes $ getClassificator $ groupByCluster res
+    runReader (showResult indexes $ getClassifiers res) opts

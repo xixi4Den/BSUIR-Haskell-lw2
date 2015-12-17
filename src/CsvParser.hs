@@ -10,17 +10,22 @@ import qualified Data.Conduit.List as CL
 import Control.Monad.Trans.Resource
 import Text.Printf
 import qualified Data.ByteString.Char8 as BS
+import Control.Monad.Reader
 
 import Args
 
-parseCsv :: ProgramOptions -> IO [([Double], String)]
-parseCsv opts = source (inputPath opts) $$ conduit opts =$ CL.consume
+parseCsv :: Reader ProgramOptions (IO [([Double], String)])
+parseCsv = do
+    opts <- ask
+    return (source (inputPath opts) $$ conduit opts =$ CL.consume)
 
 
-showResult :: ProgramOptions -> [Int] -> [(String, [(Double, Double)])] -> IO ()
-showResult opts indexes results = if (outPath opts) == ""
-    then showOnConsole results indexes
-    else runResourceT $ (CL.sourceList results) $$ CL.map (\x -> BS.pack $ resultToString x ++ "\n" ++ (indexesToString indexes)) =$ (CB.sinkFile (outPath opts))
+showResult :: [Int] -> [(String, [(Double, Double)])] -> Reader ProgramOptions (IO ())
+showResult indexes results = do
+    opts <- ask
+    if (outPath opts) == ""
+        then return (showOnConsole results indexes)
+        else return (runResourceT $ (CL.sourceList results) $$ CL.map (\x -> BS.pack $ resultToString x ++ "\n" ++ (indexesToString indexes)) =$ (CB.sinkFile (outPath opts)))
 
 
 source :: String -> Source IO String

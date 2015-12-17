@@ -2,6 +2,7 @@ module Bayes
 where
 
 import Data.List
+import Control.Monad.Reader
 
 
 groupByCluster :: [([Double], String)] -> [[([Double], String)]]
@@ -16,9 +17,10 @@ average :: [Double] -> Double
 average list = sum list / (fromIntegral (length list))
 
 
-getExpectedVectors :: [[([Double], String)]] -> [([Double], String)]
-getExpectedVectors groups = do    
-    map (\group -> getExpectedVectorsByGroup group) groups
+getExpectedVectors :: Reader [[([Double], String)]] [([Double], String)]
+getExpectedVectors = do    
+    groups <- ask
+    return $ map (\group -> getExpectedVectorsByGroup group) groups
 
 
 getExpectedVectorsByGroup :: [([Double], String)] -> ([Double], String)
@@ -32,8 +34,10 @@ expectedVectorForCluster :: String -> [([Double], String)] -> [Double]
 expectedVectorForCluster clusterName expectedVectors = fst $ head $ filter (\x -> snd x == clusterName) $ expectedVectors
 
 
-getVariances :: [[([Double], String)]] -> [([Double], String)] -> [([Double], String)]
-getVariances groups expectedVectors = map (\x -> getVariancesByGroup x expectedVectors) $ groups
+getVariances ::  [([Double], String)] -> Reader [[([Double], String)]] [([Double], String)]
+getVariances expectedVectors = do
+    groups <- ask
+    return $ map (\x -> getVariancesByGroup x expectedVectors) $ groups
 
 
 getVariancesByGroup :: [([Double], String)] -> [([Double], String)] -> ([Double], String)
@@ -48,11 +52,12 @@ varianceForCluster :: String -> [([Double], String)] -> [Double]
 varianceForCluster clusterName variances = fst $ head $ filter (\x -> snd x == clusterName) $ variances
 
 
-getClassificator :: [[([Double], String)]] -> [(String, [(Double, Double)])]
-getClassificator groups =
+getClassifiers :: [([Double], String)] -> [(String, [(Double, Double)])]
+getClassifiers patterns =
     map (\group -> ((clusterName group), foldl (++) [] $ zipWith (\a b -> [(a, b)]) (expectedVector group) (variance group))) groups
     where
-        expectedVectors = getExpectedVectors groups
+        groups = groupByCluster patterns
+        expectedVectors = runReader getExpectedVectors groups
         expectedVector group = expectedVectorForCluster (clusterName group) expectedVectors
-        variances = getVariances groups expectedVectors
+        variances = runReader (getVariances expectedVectors) groups
         variance group = varianceForCluster (clusterName group) variances
